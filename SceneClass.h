@@ -4,21 +4,50 @@
 #include <vtk-6.2/vtkMutableUndirectedGraph.h>
 #include <vtk-6.2/vtkSmartPointer.h>
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QString>
+#include <QTimer>
 
 class Nodes;
+
+class View :public QGraphicsView
+{
+public:
+	View(QWidget *parent = 0);
+
+public:
+	int timerId;
+
+public:
+	void timerEvent(QTimerEvent *);
+	void itemMoved();
+};
 
 class Graph:public QGraphicsScene
 {
 	Q_OBJECT
 
 public:
+	Graph();
 	virtual void LoadData() = 0;
 	void findNodebyNum(Nodes *(&node1), Nodes *(&node2), int num1, int num2);
+	void setParentView(View * parent) {parentView = parent;};
+	View* getParentView(){return parentView;}
+	void wheelEvent(QGraphicsSceneWheelEvent *event);
+	void switchAnimation();
+
+public:
+	QTimer* switchTimer;
+	int switchTimes;
+
+private:
+	View* parentView;
+protected:	
+	bool hasLoaded;
+
 public:
 	enum LayoutStrategy {defaultLayout, circleLayout, clusterLayout, communityLayout };
 	LayoutStrategy currentLayout;
-
 };
 
 class PCAGraph :public Graph
@@ -33,7 +62,7 @@ public:
 	void LoadData();
 	void LoadNodeDataOfPCA(QString inputFileName);
 	void LoadEdgeDataOfPCA(QString inputFileName);
-	void wheelEvent(QGraphicsSceneWheelEvent *event);
+
 	vtkSmartPointer<vtkMutableUndirectedGraph> g;
 	void generateLayoutPosition(QString);
 

@@ -39,12 +39,13 @@ public:
 	QList<UndirectedEdge*> UndirectedEdgeLIst;
 
 	QPointF newPos;
+	QPointF oldPos;
 	vtkIdType idType;
 
 public:
 	virtual QRectF boundingRect()const;
 	virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget /* = 0 */);
-	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+	virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 	void mousePressEvent(QGraphicsSceneMouseEvent *event);
 	void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -56,7 +57,6 @@ public:
 	void setViewColor(QColor);
 	void setViewLabel(QString);
 	void inputDefaultPosition(double, double, double);
-	void setZoom(double scaleFctor, QPointF pos);
 };
 
 class PaperNode :public Nodes
@@ -81,6 +81,7 @@ public:
 	void setPageFrom(int);
 	void setPaperTitle(QString);
 	void setPaperTitleShort(QString);
+	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 	PCAGraph * getScene(){return m_scene;}
 };
 
@@ -97,6 +98,7 @@ private:
 
 public:
 	PCAGraph * getScene(){return m_scene;}
+	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 };
 
 class AuthorNode :public Nodes
@@ -111,7 +113,7 @@ private:
 	PCAGraph *m_scene;
 public:
 	PCAGraph * getScene(){return m_scene;}
-
+	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 };
 
 class TopicNode :public Nodes
@@ -129,6 +131,7 @@ public:
 	QStringList getTopicWords(){return topicWords;}
 	QStringList getTopicDocuments(){return topicDocuments;}
 	TopicGraph *getScene(){return m_scene;}
+	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 };
 
 

@@ -14,6 +14,7 @@
 #include <QString>
 #include <QGraphicsSceneMouseEvent>
 #include <QWheelEvent>
+#include <QTimerEvent>
 
 Nodes::Nodes()
 {
@@ -84,8 +85,8 @@ void Nodes::setViewLabel(QString l)
 //坐标进行了改动
 void Nodes::inputDefaultPosition(double x, double y, double z)
 {
-	m_x = x ;
-	m_y = y ;
+	m_x = x * 2.5 - 100 ;
+	m_y = y * 2.5 - 100;
 	m_z = z;
 }
 
@@ -105,7 +106,8 @@ void Nodes::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 
 void Nodes::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 {
-	setPos(ev->scenePos());
+	newPos.setX(ev->scenePos().x());
+	newPos.setY(ev->scenePos().y());
 	update();
 	QGraphicsItem::mouseMoveEvent(ev);
 }
@@ -134,7 +136,7 @@ void Nodes::calculateForces()
 	// Sum up all forces pushing this item away
 	qreal xvel = 0;
 	qreal yvel = 0;
-	foreach (QGraphicsItem *item, scene()->items()) {
+	foreach (QGraphicsItem *item, scene()->items(Qt::DescendingOrder)) {
 		Nodes *node = qgraphicsitem_cast<Nodes *>(item);
 		if (!node)
 			continue;
@@ -166,26 +168,78 @@ void Nodes::calculateForces()
 	newPos = pos() + QPointF(xvel, yvel);
 	newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right() - 10));
 	newPos.setY(qMin(qMax(newPos.y(), sceneRect.top() + 10), sceneRect.bottom() - 10));
-}
-
-void Nodes::setZoom(double scaleFactor, QPointF MPos)
-{
-	double nx = 0, ny = 0;
-	nx = MPos.rx()
-		+ (pos().rx() - MPos.rx()) / scaleFactor;
-	ny = MPos.ry()
-		+ (pos().ry() - MPos.ry()) / scaleFactor;
-	setPos(nx, ny);
-	prepareGeometryChange();
+	qDebug() << "newPos" << newPos.x() << newPos.y();
 }
 
 QVariant Nodes::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+/*
+	switch (change) {
+	case ItemPositionHasChanged:
+		foreach (DirectedEdge *edge, DirectedEdgeList)
+			edge->adjust();
+		foreach (UndirectedEdge *edge, UndirectedEdgeLIst)
+			edge->adjust();
+		break;
+	default:
+		break;
+	};*/
+
+	return QGraphicsItem::itemChange(change, value);
+}
+
+QVariant PaperNode::itemChange(GraphicsItemChange change, const QVariant &value)
 {
 	switch (change) {
 	case ItemPositionHasChanged:
 		foreach (DirectedEdge *edge, DirectedEdgeList)
 			edge->adjust();
-		//graph->itemMoved();
+		getScene()->getParentView()->itemMoved();
+		break;
+	default:
+		break;
+	};
+
+	return QGraphicsItem::itemChange(change, value);
+}
+
+QVariant ConferenceNode::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+	switch (change) {
+	case ItemPositionHasChanged:
+		foreach (DirectedEdge *edge, DirectedEdgeList)
+			edge->adjust();
+		getScene()->getParentView()->itemMoved();
+		break;
+	default:
+		break;
+	};
+
+	return QGraphicsItem::itemChange(change, value);
+}
+
+QVariant AuthorNode::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+	switch (change) {
+	case ItemPositionHasChanged:
+		foreach (DirectedEdge *edge, DirectedEdgeList)
+			edge->adjust();
+		getScene()->getParentView()->itemMoved();
+		break;
+	default:
+		break;
+	};
+
+	return QGraphicsItem::itemChange(change, value);
+}
+
+QVariant TopicNode::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+	switch (change) {
+	case ItemPositionHasChanged:
+		foreach (UndirectedEdge *edge, UndirectedEdgeLIst)
+			edge->adjust();
+		getScene()->getParentView()->itemMoved();
 		break;
 	default:
 		break;

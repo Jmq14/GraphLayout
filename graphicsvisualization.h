@@ -15,6 +15,7 @@ public:
 
 private:
 	Ui::GraphicsVisualizationClass ui;
+	View *v;
 	PCAGraph *s;
 	TopicGraph *t;
 
