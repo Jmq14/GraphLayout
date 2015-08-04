@@ -1,5 +1,8 @@
 #include "graphicsvisualization.h"
 #include "SceneClass.h"
+#include "ItemClass.h"
+#include <QTextBrowser>
+#include <QGraphicsItem>
 
 
 GraphicsVisualization::GraphicsVisualization(QWidget *parent)
@@ -22,10 +25,7 @@ GraphicsVisualization::GraphicsVisualization(QWidget *parent)
 	t = new TopicGraph;
 	//t->LoadNodeDataOfTopic("Nodes.txt");
 	//t->LoadEdgeDataOfTopic("Edges.txt");
-	//ui.graphicsView->setScene(s);
 
-	
-	//ui.graphicsView = v;
 
 	ui.graphicsView->setRenderHint(QPainter::Antialiasing);
 	ui.graphicsView->setCacheMode(QGraphicsView::CacheBackground);
@@ -33,6 +33,7 @@ GraphicsVisualization::GraphicsVisualization(QWidget *parent)
 	ui.graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	ui.graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	ui.graphicsView->setBackgroundBrush(Qt::black);
+	ui.graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
 	ui.graphicsView->setScene(s);
 	s->setParentView(ui.graphicsView);
 	t->setParentView(ui.graphicsView);
@@ -41,10 +42,16 @@ GraphicsVisualization::GraphicsVisualization(QWidget *parent)
 	ui.comboBoxLayout->addItem("cluster");
 	ui.comboBoxLayout->addItem("circle");
 	
+	s->LoadData();
+	t->LoadData();
+	connect(ui.actionLoadPaperConferenceAuthorData, &QAction::triggered, this, &GraphicsVisualization::setPCAScene);
+	connect(ui.actionTopic, &QAction::triggered,this, &GraphicsVisualization::setTopicScene);
+/*
+
 	connect(ui.actionLoadPaperConferenceAuthorData, &QAction::triggered, s, &PCAGraph::LoadData);
 	connect(ui.actionTopic, &QAction::triggered, t, &TopicGraph::LoadData);
 	connect(s, &PCAGraph::loadedPCA, this, &GraphicsVisualization::setPCAScene);
-	connect(t, &TopicGraph::loadedTopic, this, &GraphicsVisualization::setTopicScene);
+	connect(t, &TopicGraph::loadedTopic, this, &GraphicsVisualization::setTopicScene);*/
 }
 
 GraphicsVisualization::~GraphicsVisualization()
@@ -55,15 +62,31 @@ GraphicsVisualization::~GraphicsVisualization()
 void GraphicsVisualization::setPCAScene()
 {
 	ui.graphicsView->setScene(s);
-	//v->setScene(s);
+	foreach (QGraphicsItem * item, s->items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			connect(((Nodes *)item), &Nodes::sendInfomation, ui.textBrowser, &QTextBrowser::setText);
+		}
+	}
 	connect(ui.comboBoxLayout, &QComboBox::currentTextChanged, s, &PCAGraph::generateLayoutPosition);
 	disconnect(ui.comboBoxLayout, &QComboBox::currentTextChanged, t, &TopicGraph::generateLayoutPosition);
+
+	s->generateLayoutPosition("default");
 }
 
 void GraphicsVisualization::setTopicScene()
 {
 	ui.graphicsView->setScene(t);
-	//v->setScene(t);
+	foreach (QGraphicsItem * item, t->items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			connect(((Nodes *)item), &Nodes::sendInfomation, ui.textBrowser, &QTextBrowser::setText);
+		}
+	}
 	disconnect(ui.comboBoxLayout, &QComboBox::currentTextChanged, s, &PCAGraph::generateLayoutPosition);
 	connect(ui.comboBoxLayout, &QComboBox::currentTextChanged, t, &TopicGraph::generateLayoutPosition);
+
+	t->generateLayoutPosition("default");
 }

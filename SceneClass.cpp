@@ -64,7 +64,7 @@ void Graph::findNodebyNum(Nodes *(&node1), Nodes *(&node2), int num1, int num2)
 {
 	Nodes *node;
 	int flag = 0;
-	foreach (QGraphicsItem* item, items(Qt::DescendingOrder))
+	foreach (QGraphicsItem* item, items(Qt::AscendingOrder))
 	{
 		if (item->type() == QGraphicsItem::UserType + 1)
 		{
@@ -169,13 +169,10 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 									rxColor.cap(2).toInt(&ok),
 									rxColor.cap(3).toInt(&ok)
 									));
-
-								continue;
 							}
 							else if (rx.cap(1) == "viewLabel")
 							{
 								tempItem->setViewLabel(rx.cap(2));
-								continue;
 							}
 							else if (rx.cap(1) == "viewLayout")
 							{
@@ -183,7 +180,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 								tempItem->inputDefaultPosition(rxPos.cap(1).toDouble(&ok),
 									rxPos.cap(2).toDouble(&ok),
 									rxPos.cap(3).toDouble(&ok));
-								continue;
+								tempItem->setPos(sceneRect().width()/2,sceneRect().height()/2);
 							}
 							else{
 								tempItem->addInformation(tempLine);
@@ -207,13 +204,10 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 									rxColor.cap(1).toInt(&ok),
 									rxColor.cap(2).toInt(&ok),
 									rxColor.cap(3).toInt(&ok)));
-
-								continue;
 							}
 							else if (rx.cap(1) == "viewLabel")
 							{
 								tempItem->setViewLabel(rx.cap(2));
-								continue;
 							}
 							else if (rx.cap(1) == "viewLayout")
 							{
@@ -221,7 +215,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 								tempItem->inputDefaultPosition(rxPos.cap(1).toDouble(&ok),
 									rxPos.cap(2).toDouble(&ok),
 									rxPos.cap(3).toDouble(&ok));
-								continue;
+								tempItem->setPos(sceneRect().width()/2,sceneRect().height()/2);
 							}
 							else
 							{
@@ -245,13 +239,10 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 									rxColor.cap(1).toInt(&ok),
 									rxColor.cap(2).toInt(&ok),
 									rxColor.cap(3).toInt(&ok)));
-
-								continue;
 							}
 							else if (rx.cap(1) == "viewLabel")
 							{
 								tempItem->setViewLabel(rx.cap(2));
-								continue;
 							}
 							else if (rx.cap(1) == "viewLayout")
 							{
@@ -259,7 +250,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 								tempItem->inputDefaultPosition(rxPos.cap(1).toDouble(&ok),
 									rxPos.cap(2).toDouble(&ok),
 									rxPos.cap(3).toDouble(&ok));
-								continue;
+								tempItem->setPos(sceneRect().width()/2,sceneRect().height()/2);
 							}
 							else
 							{
@@ -296,9 +287,8 @@ void PCAGraph::LoadEdgeDataOfPCA(QString inputFileName)
 		source->DirectedEdgeList.push_back(newEdge);
 		target->DirectedEdgeList.push_back(newEdge);
 		g->AddEdge(source->idType, target->idType);
-		qDebug() << "add edge";
 	}
-	generateLayoutPosition("default");
+	
 }
 
 void PCAGraph::generateLayoutPosition(QString strategy)
@@ -481,10 +471,10 @@ void TopicGraph::LoadNodeDataOfTopic(QString inputFileName)
 					tempItem->inputTopicDocuments(rx.cap(2).split(" "));
 				}
 			}while(tempLine.indexOf(rxEmpty) >= 0);
+			tempItem->setPos(sceneRect().width()/2,sceneRect().height()/2);
 			this->addItem(tempItem);
 			//else this->items().append((QGraphicsItem *)tempItem);
 			tempItem->idType = tempItem->getScene()->g->AddVertex();
-			qDebug() <<"add node";
 		}
 	}
 
@@ -504,19 +494,13 @@ void TopicGraph::LoadEdgeDataOfTopic(QString inputFileName)
 	{
 		tempLine = inputFile.readLine();
 		tempList = tempLine.split(" ");
-		//qDebug() << tempList[0] << tempList[1] << tempList[2];
-		//qDebug() << tempList[2].toDouble(&ok) << ok;
 		findNodebyNum(node1, node2, tempList[0].toInt(&ok), tempList[1].toInt(&ok));
 		newEdge = new UndirectedEdge(this, node1, node2, tempList[2].toInt(&ok));
 		this->addItem(newEdge);
-		//else this->items().push_back((QGraphicsItem *)newEdge);
-		qDebug() << "add edge";
-
 		node1->UndirectedEdgeLIst.push_back(newEdge);
 		node2->UndirectedEdgeLIst.push_back(newEdge); //to debug
 		g->AddEdge(node1->idType, node2->idType);
 	}
-	generateLayoutPosition("default");
 }
 
 void TopicGraph::generateLayoutPosition(QString strategy)
@@ -536,7 +520,7 @@ void TopicGraph::generateLayoutPosition(QString strategy)
 			layout->Update();
 			vtkGraph* outputGraph = layout->GetOutput();
 			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::DescendingOrder))
+			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
 			{
 				if (item->type() == QGraphicsItem::UserType + 1)
 				{
@@ -560,7 +544,7 @@ void TopicGraph::generateLayoutPosition(QString strategy)
 			layout->Update();
 			vtkGraph* outputGraph = layout->GetOutput();
 			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::DescendingOrder))
+			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
 			{
 				if (item->type() == QGraphicsItem::UserType + 1)
 				{
@@ -585,7 +569,7 @@ void TopicGraph::generateLayoutPosition(QString strategy)
 			layout->Update();
 			vtkGraph* outputGraph = layout->GetOutput();
 			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::DescendingOrder))
+			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
 			{
 				if (item->type() == QGraphicsItem::UserType + 1)
 				{

@@ -49,7 +49,7 @@ TopicNode::TopicNode(TopicGraph *parent, int num)
 
 QRectF Nodes::boundingRect() const
 {
-	qreal adjust = 2;
+	qreal adjust = 3;
 	return QRectF( -5 - adjust, -5 - adjust, 10 + adjust, 10 + adjust);
 }
 
@@ -100,6 +100,7 @@ QPainterPath Nodes::shape() const
 
 void Nodes::mousePressEvent(QGraphicsSceneMouseEvent *ev) 
 {
+	emit sendInfomation(m_information);
 	update();
 	QGraphicsItem::mousePressEvent(ev);
 }
@@ -194,7 +195,7 @@ QVariant PaperNode::itemChange(GraphicsItemChange change, const QVariant &value)
 	case ItemPositionHasChanged:
 		foreach (DirectedEdge *edge, DirectedEdgeList)
 			edge->adjust();
-		getScene()->getParentView()->itemMoved();
+		//getScene()->getParentView()->itemMoved();
 		break;
 	default:
 		break;
@@ -209,7 +210,7 @@ QVariant ConferenceNode::itemChange(GraphicsItemChange change, const QVariant &v
 	case ItemPositionHasChanged:
 		foreach (DirectedEdge *edge, DirectedEdgeList)
 			edge->adjust();
-		getScene()->getParentView()->itemMoved();
+		//getScene()->getParentView()->itemMoved();
 		break;
 	default:
 		break;
@@ -224,7 +225,7 @@ QVariant AuthorNode::itemChange(GraphicsItemChange change, const QVariant &value
 	case ItemPositionHasChanged:
 		foreach (DirectedEdge *edge, DirectedEdgeList)
 			edge->adjust();
-		getScene()->getParentView()->itemMoved();
+		//getScene()->getParentView()->itemMoved();
 		break;
 	default:
 		break;
@@ -239,7 +240,7 @@ QVariant TopicNode::itemChange(GraphicsItemChange change, const QVariant &value)
 	case ItemPositionHasChanged:
 		foreach (UndirectedEdge *edge, UndirectedEdgeLIst)
 			edge->adjust();
-		getScene()->getParentView()->itemMoved();
+		//getScene()->getParentView()->itemMoved();
 		break;
 	default:
 		break;

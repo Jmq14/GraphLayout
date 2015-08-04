@@ -3,7 +3,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_graphicsvisualization.h"
-#include "SceneClass.h";
+#include "SceneClass.h"
 
 class GraphicsVisualization : public QMainWindow
 {

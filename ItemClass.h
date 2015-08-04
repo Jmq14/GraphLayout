@@ -10,13 +10,16 @@
 #include <QLabel>
 #include <QPointF>
 #include <QList>
+#include <QObject>
 #include "SceneClass.h"
 
 class DirectedEdge;
 class UndirectedEdge;
 
-class Nodes :public QGraphicsItem
+class Nodes :public QObject, public QGraphicsItem
 {
+	Q_OBJECT
+
 public:
 	Nodes();
 	enum { Type = UserType + 1 };
@@ -40,7 +43,11 @@ public:
 
 	QPointF newPos;
 	QPointF oldPos;
+	QPointF strategyPos[10];
 	vtkIdType idType;
+
+signals:
+	void sendInfomation(QString);
 
 public:
 	virtual QRectF boundingRect()const;
@@ -72,7 +79,6 @@ private:
 	QString m_paperTitle;
 	QString m_paperTitleShort;
 	PCAGraph *m_scene;
-
 public:
 	void setYear(int);
 	void setAuthors(QString);
@@ -111,6 +117,8 @@ private:
 	QString m_authorName;
 	QString m_authorNameShort;
 	PCAGraph *m_scene;
+
+
 public:
 	PCAGraph * getScene(){return m_scene;}
 	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
@@ -125,6 +133,8 @@ private:
 	QStringList topicWords;
 	QStringList topicDocuments;
 	TopicGraph *m_scene;
+
+
 public:
 	void inputTopicWords(QStringList input) {topicWords = input;}
 	void inputTopicDocuments(QStringList input) {topicDocuments = input;}
@@ -136,8 +146,10 @@ public:
 
 
 
-class Edges:public QGraphicsItem
+class Edges:public QObject, public QGraphicsItem
 {
+	Q_OBJECT
+
 public:
 	enum { Type = UserType + 2 };
 

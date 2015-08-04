@@ -62,6 +62,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_SceneClass.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_ItemClass.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_ItemClass.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="graphicsvisualization.h">
@@ -76,13 +82,13 @@
     <CustomBuild Include="SceneClass.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="ItemClass.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_graphicsvisualization.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ItemClass.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
