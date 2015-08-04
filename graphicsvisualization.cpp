@@ -3,7 +3,7 @@
 #include "ItemClass.h"
 #include <QTextBrowser>
 #include <QGraphicsItem>
-
+#include <QDebug>
 
 GraphicsVisualization::GraphicsVisualization(QWidget *parent)
 	: QMainWindow(parent)
@@ -34,13 +34,17 @@ GraphicsVisualization::GraphicsVisualization(QWidget *parent)
 	ui.graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	ui.graphicsView->setBackgroundBrush(Qt::black);
 	ui.graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
-	ui.graphicsView->setScene(s);
+	ui.graphicsView->setScene(t);
 	s->setParentView(ui.graphicsView);
 	t->setParentView(ui.graphicsView);
 
 	ui.comboBoxLayout->addItem("default");
 	ui.comboBoxLayout->addItem("cluster");
 	ui.comboBoxLayout->addItem("circle");
+	ui.comboBoxLayout->addItem("fast2D");
+	ui.comboBoxLayout->addItem("simple2D");
+	ui.comboBoxLayout->addItem("forceDirected2D");
+	ui.comboBoxLayout->addItem("spanTree");
 	
 	s->LoadData();
 	t->LoadData();
@@ -52,6 +56,7 @@ GraphicsVisualization::GraphicsVisualization(QWidget *parent)
 	connect(ui.actionTopic, &QAction::triggered, t, &TopicGraph::LoadData);
 	connect(s, &PCAGraph::loadedPCA, this, &GraphicsVisualization::setPCAScene);
 	connect(t, &TopicGraph::loadedTopic, this, &GraphicsVisualization::setTopicScene);*/
+	qDebug() << "finish the construction";
 }
 
 GraphicsVisualization::~GraphicsVisualization()
@@ -69,10 +74,9 @@ void GraphicsVisualization::setPCAScene()
 			connect(((Nodes *)item), &Nodes::sendInfomation, ui.textBrowser, &QTextBrowser::setText);
 		}
 	}
-	connect(ui.comboBoxLayout, &QComboBox::currentTextChanged, s, &PCAGraph::generateLayoutPosition);
-	disconnect(ui.comboBoxLayout, &QComboBox::currentTextChanged, t, &TopicGraph::generateLayoutPosition);
-
-	s->generateLayoutPosition("default");
+	connect(ui.comboBoxLayout, &QComboBox::currentTextChanged, s, &PCAGraph::switchLayoutStrategy);
+	disconnect(ui.comboBoxLayout, &QComboBox::currentTextChanged, t, &TopicGraph::switchLayoutStrategy);
+	s->switchLayoutStrategy("default");
 }
 
 void GraphicsVisualization::setTopicScene()
@@ -85,8 +89,7 @@ void GraphicsVisualization::setTopicScene()
 			connect(((Nodes *)item), &Nodes::sendInfomation, ui.textBrowser, &QTextBrowser::setText);
 		}
 	}
-	disconnect(ui.comboBoxLayout, &QComboBox::currentTextChanged, s, &PCAGraph::generateLayoutPosition);
-	connect(ui.comboBoxLayout, &QComboBox::currentTextChanged, t, &TopicGraph::generateLayoutPosition);
-
-	t->generateLayoutPosition("default");
+	disconnect(ui.comboBoxLayout, &QComboBox::currentTextChanged, s, &PCAGraph::switchLayoutStrategy);
+	connect(ui.comboBoxLayout, &QComboBox::currentTextChanged, t, &TopicGraph::switchLayoutStrategy);
+	t->switchLayoutStrategy("default");
 }

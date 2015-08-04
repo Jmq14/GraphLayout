@@ -7,7 +7,10 @@
 #include <vtk-6.2/vtkMutableUndirectedGraph.h>
 #include <vtk-6.2/vtkCircularLayoutStrategy.h>
 #include <vtk-6.2/vtkClustering2DLayoutStrategy.h>
-#include <vtk-6.2/vtkCommunity2DLayoutStrategy.h>
+#include <vtk-6.2/vtkFast2DLayoutStrategy.h>
+#include <vtk-6.2/vtkSimple2DLayoutStrategy.h>
+#include <vtk-6.2/vtkForceDirectedLayoutStrategy.h>
+#include <vtk-6.2/vtkSpanTreeLayoutStrategy.h>
 #include <vtk-6.2/vtkDataSetAttributes.h>
 #include <vtk-6.2/vtkDoubleArray.h>
 #include <vtk-6.2/vtkGraphLayoutView.h>
@@ -79,11 +82,149 @@ void Graph::findNodebyNum(Nodes *(&node1), Nodes *(&node2), int num1, int num2)
 	}
 }
 
+void Graph::switchLayoutStrategy(QString strategy)
+{
+	if (strategy == "default") currentLayout = defaultLayout;
+	if (strategy == "circle") currentLayout = circleLayout;
+	if (strategy == "cluster") currentLayout = clusterLayout;
+	if (strategy == "fast2D") currentLayout = fast2DLayout;
+	if (strategy == "simple2D") currentLayout = simple2DLayout;
+	if (strategy == "forceDirected2D") currentLayout = forceDirected2D;
+	if (strategy == "spanTree") currentLayout = spanTree;
+
+	switch (currentLayout)
+	{
+	case PCAGraph::defaultLayout:
+		{
+			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+			{
+				if (item->type() == QGraphicsItem::UserType + 1)
+				{
+					((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[0].x());
+					((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[0].y());
+					//item->setPos(((Nodes*)item)->m_x * 2.5 , ((Nodes*)item)->m_y * 2.5 - 150);
+					((Nodes *)item)->oldPos.setX(item->pos().x());
+					((Nodes *)item)->oldPos.setY(item->pos().y());
+				}
+				else break;
+			}
+			switchTimer->start();
+			break;
+		}
+
+	case PCAGraph::circleLayout:
+		{
+			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+			{
+				if (item->type() == QGraphicsItem::UserType + 1)
+				{
+					((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[1].x());
+					((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[1].y());
+					((Nodes *)item)->oldPos.setX(item->pos().x());
+					((Nodes *)item)->oldPos.setY(item->pos().y());	
+				}
+				else break;
+			}
+			switchTimer->start();
+			break;
+		}
+	case clusterLayout:
+		{
+			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+			{
+				if (item->type() == QGraphicsItem::UserType + 1)
+				{
+					((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[2].x());
+					((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[2].y());
+					((Nodes *)item)->oldPos.setX(item->pos().x());
+					((Nodes *)item)->oldPos.setY(item->pos().y());	
+				}
+				else break;
+			}
+			switchTimer->start();
+			break;
+		}
+	case fast2DLayout:
+		foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+		{
+			if (item->type() == QGraphicsItem::UserType + 1)
+			{
+				((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[3].x());
+				((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[3].y());
+				((Nodes *)item)->oldPos.setX(item->pos().x());
+				((Nodes *)item)->oldPos.setY(item->pos().y());	
+			}
+			else break;
+		}
+		switchTimer->start();
+		break;
+	case simple2DLayout:
+		foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+		{
+			if (item->type() == QGraphicsItem::UserType + 1)
+			{
+				((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[4].x());
+				((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[4].y());
+				((Nodes *)item)->oldPos.setX(item->pos().x());
+				((Nodes *)item)->oldPos.setY(item->pos().y());	
+			}
+			else break;
+		}
+		switchTimer->start();
+		break;
+	case forceDirected2D:
+		foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+		{
+			if (item->type() == QGraphicsItem::UserType + 1)
+			{
+				((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[5].x());
+				((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[5].y());
+				((Nodes *)item)->oldPos.setX(item->pos().x());
+				((Nodes *)item)->oldPos.setY(item->pos().y());	
+			}
+			else break;
+		}
+		switchTimer->start();
+		break;
+	case spanTree:
+		foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+		{
+			if (item->type() == QGraphicsItem::UserType + 1)
+			{
+				((Nodes *)item)->newPos.setX(((Nodes*)item)->strategyPos[6].x());
+				((Nodes *)item)->newPos.setY(((Nodes*)item)->strategyPos[6].y());
+				((Nodes *)item)->oldPos.setX(item->pos().x());
+				((Nodes *)item)->oldPos.setY(item->pos().y());	
+			}
+			else break;
+		}
+		switchTimer->start();
+		break;
+	}
+}
+
+void Graph::wheelEvent(QGraphicsSceneWheelEvent *event)
+{
+	qDebug() <<"wheel event!";
+	double scaleFactor = 1.15; //How fast we zoom
+
+	if (event->orientation()==Qt::Vertical){
+		if(event->delta() > 0) {
+			//Zoom in
+			(getParentView())->scale(scaleFactor, scaleFactor);
+		} else {
+			scaleFactor = 1.0 / scaleFactor;
+			//Zoom out
+			(getParentView())->scale(scaleFactor,  scaleFactor);
+		}
+	}
+}
+
 void View::itemMoved()
 {
 	/*if (timerId != 0)
 		timerId = startTimer(1000 / 25);*/
-	qDebug() << "itemMoved";
+	//qDebug() << "itemMoved";
 }
 
 void View::timerEvent(QTimerEvent * event)
@@ -122,6 +263,7 @@ void PCAGraph::LoadData()
 		LoadNodeDataOfPCA("PCANodes.txt");
 		LoadEdgeDataOfPCA("PCAEdges.txt");
 		hasLoaded = true;
+		generateLayoutPosition();
 	}
 	emit loadedPCA();
 
@@ -291,130 +433,122 @@ void PCAGraph::LoadEdgeDataOfPCA(QString inputFileName)
 	
 }
 
-void PCAGraph::generateLayoutPosition(QString strategy)
+void PCAGraph::generateLayoutPosition()
 {
-	if (strategy == "default") currentLayout = defaultLayout;
-	if (strategy == "circle") currentLayout = circleLayout;
-	if (strategy == "cluster") currentLayout = clusterLayout;
-	if (strategy == "community") currentLayout = communityLayout;
-	switch (currentLayout)
+	Nodes * node;
+	vtkGraph *outputGraph;
+	double pt[3] = {0.0, 0.0, 0.0};
+	VTK_CREATE(vtkGraphLayout, layout);
+	layout->SetInputData(g);
+
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
 	{
-	case PCAGraph::defaultLayout:
+		if (item->type() == QGraphicsItem::UserType + 1)
 		{
-			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					((Nodes *)item)->newPos.setX(((Nodes*)item)->m_x);
-					((Nodes *)item)->newPos.setY(((Nodes*)item)->m_y);
-					//item->setPos(((Nodes*)item)->m_x * 2.5 , ((Nodes*)item)->m_y * 2.5 - 150);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-				}
-				else break;
-			}
-			switchTimer->start();
-			break;
+			node = (Nodes*)item;
+			node->strategyPos[0].setX(node->m_x);
+			node->strategyPos[0].setY(node->m_y);	
 		}
-
-	case PCAGraph::circleLayout:
-		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkCircularLayoutStrategy, circular);
-			layout->SetLayoutStrategy(circular);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 300 + 500);
-					((Nodes *)item)->newPos.setY(pt[1]*300 + 300);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-					//item->setPos(pt[0]* 300 + 500, pt[1]*300 + 300);		
-				}
-				else break;
-			}
-			switchTimer->start();
-			break;
-		}
-	case clusterLayout:
-		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkClustering2DLayoutStrategy, cluster);
-			layout->SetLayoutStrategy(cluster);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 300 + 180);
-					((Nodes *)item)->newPos.setY(pt[1]*300 + 550);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-					//item->setPos(pt[0]* 300 + 180, pt[1]*300 + 550);		
-				}
-				else break;
-			}
-			switchTimer->start();
-			break;
-		}
-	case communityLayout:
-		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkCommunity2DLayoutStrategy, community);
-			community->SetCommunityArrayName("paper");
-			layout->SetLayoutStrategy(community);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::DescendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 200 + 300);
-					((Nodes *)item)->newPos.setY(pt[1]*200 + 300);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-					//item->setPos(pt[0]* 200 + 300, pt[1]*200 + 300);		
-				}
-				else break;
-			}
-			switchTimer->start();
-			break;
-		}
-	default:
-		break;
+		else break;
 	}
-}
 
-void Graph::wheelEvent(QGraphicsSceneWheelEvent *event)
-{
-	qDebug() <<"wheel event!";
-	double scaleFactor = 1.15; //How fast we zoom
-
-	if (event->orientation()==Qt::Vertical){
-		if(event->delta() > 0) {
-			//Zoom in
-			(getParentView())->scale(scaleFactor, scaleFactor);
-		} else {
-			scaleFactor = 1.0 / scaleFactor;
-			//Zoom out
-			(getParentView())->scale(scaleFactor,  scaleFactor);
+	VTK_CREATE(vtkCircularLayoutStrategy, circular);
+	layout->SetLayoutStrategy(circular);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[1].setX(pt[0]* 300 + 500);
+			node->strategyPos[1].setY(pt[1]*300 + 300);
 		}
+		else break;
 	}
-}
 
+	VTK_CREATE(vtkClustering2DLayoutStrategy, cluster);
+	layout->SetLayoutStrategy(cluster);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[2].setX(pt[0]* 300 + 180);
+			node->strategyPos[2].setY(pt[1]*300 + 550);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkFast2DLayoutStrategy, fast2D);
+	layout->SetLayoutStrategy(fast2D);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[3].setX(pt[0]* 200 + 300);
+			node->strategyPos[3].setY(pt[1]* 200 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkSimple2DLayoutStrategy, simple2D);
+	layout->SetLayoutStrategy(simple2D);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[4].setX(pt[0]* 50 + 300);
+			node->strategyPos[4].setY(pt[1]* 50 + 200);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkForceDirectedLayoutStrategy, forceDirected2D);
+	layout->SetLayoutStrategy(forceDirected2D);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[5].setX(pt[0]* 500 + 400);
+			node->strategyPos[5].setY(pt[1]* 500 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkSpanTreeLayoutStrategy, spanTree);
+	layout->SetLayoutStrategy(spanTree);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[6].setX(pt[0] * 200 + 400);
+			node->strategyPos[6].setY(pt[1] * 200 + 250);
+		}
+		else break;
+	}
+	qDebug() <<"generate PCA!";
+}
 
 TopicGraph::TopicGraph()
 {
@@ -433,6 +567,7 @@ void TopicGraph::LoadData()
 	{
 		LoadNodeDataOfTopic("TopicNodes.txt");
 		LoadEdgeDataOfTopic("TopicEdges.txt");
+		generateLayoutPosition();
 		hasLoaded = true;
 	}
 
@@ -503,139 +638,150 @@ void TopicGraph::LoadEdgeDataOfTopic(QString inputFileName)
 	}
 }
 
-void TopicGraph::generateLayoutPosition(QString strategy)
+void TopicGraph::generateLayoutPosition()
 {
-	if (strategy == "default") currentLayout = defaultLayout;
-	if (strategy == "circle") currentLayout = circleLayout;
-	if (strategy == "cluster") currentLayout = clusterLayout;
-	if (strategy == "community") currentLayout = communityLayout;
-	switch (currentLayout)
-	{
-	case defaultLayout:
-		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkCircularLayoutStrategy, circular);
-			layout->SetLayoutStrategy(circular);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 300 + 500);
-					((Nodes *)item)->newPos.setY(pt[1]*300 + 300);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-				}
-			}
-				switchTimer->start();
-				break;
-		}
+	Nodes * node;
+	vtkGraph *outputGraph;
+	double pt[3] = {0.0, 0.0, 0.0};
+	VTK_CREATE(vtkGraphLayout, layout);
+	layout->SetInputData(g);
 
-	case circleLayout:
+	VTK_CREATE(vtkCircularLayoutStrategy, defaultS);
+	layout->SetLayoutStrategy(defaultS);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
 		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkCircularLayoutStrategy, circular);
-			layout->SetLayoutStrategy(circular);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 300 + 500);
-					((Nodes *)item)->newPos.setY(pt[1]*300 + 300);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-					//item->setPos(pt[0]* 300 + 500, pt[1]*300 + 300);		
-				}
-			}
-			switchTimer->start();
-			
-			break;
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[0].setX(pt[0]* 300 + 500);
+			node->strategyPos[0].setY(pt[1]*300 + 300);
 		}
-	case clusterLayout:
-		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkClustering2DLayoutStrategy, cluster);
-			layout->SetLayoutStrategy(cluster);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 20 + 300);
-					((Nodes *)item)->newPos.setY(pt[1]* 20 + 300);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-					//item->setPos(pt[0]* 20 + 300, pt[1]* 20 + 200);		
-				}
-			}
-			switchTimer->start();
-			break;
-		}
-	case communityLayout:
-		{
-			VTK_CREATE(vtkGraphLayout, layout);
-			layout->SetInputData(g);
-			VTK_CREATE(vtkCommunity2DLayoutStrategy, community);
-			community->SetCommunityArrayName("paper");
-			layout->SetLayoutStrategy(community);
-			layout->Update();
-			vtkGraph* outputGraph = layout->GetOutput();
-			double pt[3] = {0.0, 0.0, 0.0};
-			foreach (QGraphicsItem * item, items(Qt::DescendingOrder))
-			{
-				if (item->type() == QGraphicsItem::UserType + 1)
-				{
-					outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-					((Nodes *)item)->newPos.setX(pt[0]* 20 + 300);
-					((Nodes *)item)->newPos.setY(pt[1]* 20 + 200);
-					((Nodes *)item)->oldPos.setX(item->pos().x());
-					((Nodes *)item)->oldPos.setY(item->pos().y());
-					//item->setPos(pt[0]* 200 + 300, pt[1]*200 + 300);		
-				}
-			}
-			switchTimer->start();
-			break;
-		}
-	default:
-		break;
+		else break;
 	}
+
+	VTK_CREATE(vtkCircularLayoutStrategy, circular);
+	layout->SetLayoutStrategy(circular);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[1].setX(pt[0]* 300 + 500);
+			node->strategyPos[1].setY(pt[1]*300 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkClustering2DLayoutStrategy, cluster);
+	layout->SetLayoutStrategy(cluster);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[2].setX(pt[0]* 15 + 300);
+			node->strategyPos[2].setY(pt[1]* 15 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkFast2DLayoutStrategy, fast2D);
+	layout->SetLayoutStrategy(fast2D);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[3].setX(pt[0]* 50 + 400);
+			node->strategyPos[3].setY(pt[1]* 50 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkSimple2DLayoutStrategy, simple2D);
+	layout->SetLayoutStrategy(simple2D);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[4].setX(pt[0]* 15 + 400);
+			node->strategyPos[4].setY(pt[1]* 15 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkForceDirectedLayoutStrategy, forceDirected2D);
+	layout->SetLayoutStrategy(forceDirected2D);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[5].setX(pt[0]* 400 + 400);
+			node->strategyPos[5].setY(pt[1]* 400 + 300);
+		}
+		else break;
+	}
+
+	VTK_CREATE(vtkSpanTreeLayoutStrategy, spanTree);
+	layout->SetLayoutStrategy(spanTree);
+	layout->Update();
+	outputGraph = layout->GetOutput();
+	foreach (QGraphicsItem * item, items(Qt::AscendingOrder))
+	{
+		if (item->type() == QGraphicsItem::UserType + 1)
+		{
+			node = (Nodes *)item;
+			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
+			node->strategyPos[6].setX(pt[0]* 18 + 800);
+			node->strategyPos[6].setY(pt[1]* 18 + 300);
+		}
+		else break;
+	}
+	
+	qDebug() << "generate!";
 }
 
 void Graph::switchAnimation()
 {
 	double tempX, tempY;
-	if ((switchTimes < 20) && (switchTimes > 0))
+	if ((switchTimes < 15) && (switchTimes > 0))
 	{
 		foreach (QGraphicsItem * item, items())
 		{
 			if (item->type() == QGraphicsItem::UserType + 1)
 			{
 				tempX = ((Nodes *)item)->newPos.x() * switchTimes 
-					- ((Nodes *)item)->oldPos.x() * (switchTimes - 20);
-				tempX = tempX / 20.0;
+					- ((Nodes *)item)->oldPos.x() * (switchTimes - 15);
+				tempX = tempX / 15.0;
 				tempY = ((Nodes *)item)->newPos.y() * switchTimes 
-					- ((Nodes *)item)->oldPos.y() * (switchTimes - 20);
-				tempY = tempY / 20.0;
+					- ((Nodes *)item)->oldPos.y() * (switchTimes - 15);
+				tempY = tempY / 15.0;
 				item->setPos(tempX, tempY);		
 			}
 		}
 		switchTimes ++;
-		return;
 	}
-	if (switchTimes == 20)
+	else if (switchTimes == 15)
 	{
 		foreach (QGraphicsItem * item, items())
 		{
@@ -647,5 +793,5 @@ void Graph::switchAnimation()
 			}
 		}
 	}
-
+	else return;
 }

@@ -61,10 +61,10 @@ void Nodes::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 		return;*/
 	painter->setPen(Qt::NoPen);
 	painter->setBrush(Qt::white);
-	painter->drawEllipse( - 4,  - 4,8,8);
+	painter->drawEllipse( - 3,  - 3,6,6);
 	painter->setPen(Qt::white);
 	painter->setBrush(Qt::NoBrush);
-	painter->drawEllipse(- 5,- 5,10,10);
+	painter->drawEllipse(- 4,- 4,8,8);
 }
 
 void Nodes::addInformation(QString info)
@@ -85,8 +85,8 @@ void Nodes::setViewLabel(QString l)
 //坐标进行了改动
 void Nodes::inputDefaultPosition(double x, double y, double z)
 {
-	m_x = x * 2.5 - 100 ;
-	m_y = y * 2.5 - 100;
+	m_x = x * 3 - 100 ;
+	m_y = y * 3 - 280;
 	m_z = z;
 }
 
@@ -109,6 +109,8 @@ void Nodes::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 {
 	newPos.setX(ev->scenePos().x());
 	newPos.setY(ev->scenePos().y());
+	foreach (DirectedEdge *edge, DirectedEdgeList)
+		edge->adjust();
 	update();
 	QGraphicsItem::mouseMoveEvent(ev);
 }
@@ -191,6 +193,7 @@ QVariant Nodes::itemChange(GraphicsItemChange change, const QVariant &value)
 
 QVariant PaperNode::itemChange(GraphicsItemChange change, const QVariant &value)
 {
+/*
 	switch (change) {
 	case ItemPositionHasChanged:
 		foreach (DirectedEdge *edge, DirectedEdgeList)
@@ -200,6 +203,7 @@ QVariant PaperNode::itemChange(GraphicsItemChange change, const QVariant &value)
 	default:
 		break;
 	};
+*/
 
 	return QGraphicsItem::itemChange(change, value);
 }
@@ -214,7 +218,7 @@ QVariant ConferenceNode::itemChange(GraphicsItemChange change, const QVariant &v
 		break;
 	default:
 		break;
-	};
+	}
 
 	return QGraphicsItem::itemChange(change, value);
 }

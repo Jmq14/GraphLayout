@@ -35,6 +35,7 @@ public:
 	View* getParentView(){return parentView;}
 	void wheelEvent(QGraphicsSceneWheelEvent *event);
 	void switchAnimation();
+	virtual void switchLayoutStrategy(QString strategy);
 
 public:
 	QTimer* switchTimer;
@@ -46,7 +47,7 @@ protected:
 	bool hasLoaded;
 
 public:
-	enum LayoutStrategy {defaultLayout, circleLayout, clusterLayout, communityLayout };
+	enum LayoutStrategy {defaultLayout, circleLayout, clusterLayout, fast2DLayout, simple2DLayout, forceDirected2D, spanTree };
 	LayoutStrategy currentLayout;
 };
 
@@ -64,7 +65,7 @@ public:
 	void LoadEdgeDataOfPCA(QString inputFileName);
 
 	vtkSmartPointer<vtkMutableUndirectedGraph> g;
-	void generateLayoutPosition(QString);
+	void generateLayoutPosition();
 
 
 };
@@ -82,7 +83,7 @@ public:
 	void LoadNodeDataOfTopic(QString inputFileName);
 	void LoadEdgeDataOfTopic(QString inputFileName);
 	vtkSmartPointer<vtkMutableUndirectedGraph> g;
-	void generateLayoutPosition(QString);
+	void generateLayoutPosition();
 };
 
 #endif

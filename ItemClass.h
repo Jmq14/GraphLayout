@@ -162,6 +162,7 @@ public:
 	QGraphicsScene *m_scene;
 public:
 	QRectF boundingRect()const;
+	virtual void adjust() = 0;
 };
 
 
