@@ -34,6 +34,10 @@
 #include <QWheelEvent>
 #include <QTimer>
 #include <QTimerEvent>
+#include <QTextBrowser>
+#include <QDialog>
+#include <QSizePolicy>
+#include <QGradient>
 
 #define VTK_CREATE(type, name) \
 	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
@@ -41,26 +45,86 @@
 View::View(QWidget *parent /* = 0 */)
 {
 	timerId = 0;
+	currentScale = 100;
 }
+
+void View::itemMoved()
+{
+	/*if (timerId != 0)
+		timerId = startTimer(1000 / 25);*/
+	//qDebug() << "itemMoved";
+}
+
+void View::timerEvent(QTimerEvent * event)
+{
+	Q_UNUSED(event);
+
+/*
+	qDebug() << "timer Event";
+
+	QList<Nodes *> nodes;
+	foreach (QGraphicsItem *item, scene()->items(Qt::DescendingOrder)) {
+		if (item->type() == QGraphicsItem::UserType + 1)
+			nodes << (Nodes *)item;
+	}
+
+	foreach (Nodes *node, nodes)
+		node->calculateForces();
+
+	bool itemsMoved = false;
+	foreach (Nodes *node, nodes) {
+		if (node->advance())
+			itemsMoved = true;
+	}
+
+	if (!itemsMoved) {
+		killTimer(timerId);
+		timerId = 0;
+	}*/
+}
+
+void View::drawBackground(QPainter *painter, const QRectF &rect)
+{
+	if (colorStrategy == "Dark")
+	{
+		QLinearGradient darkBack(sceneRect().width()/2,0,sceneRect().width()/2,sceneRect().height());
+		darkBack.setColorAt(0.0, Qt::black);
+		darkBack.setColorAt(0.7, QColor(166,201,232));
+		darkBack.setColorAt(1.0, QColor(95,133,159));
+		painter->setBrush(darkBack);
+		painter->drawRect(rect);
+	}
+	else if (colorStrategy == "Light")
+	{
+		painter->setBrush(QColor(252,250,242));
+		painter->drawRect(rect);
+	}
+}
+
+void View::setColorStrategy(QString strategy)
+{
+	colorStrategy = strategy;
+	resetCachedContent();
+}
+
+void View::setScale(int slideValue)
+{
+	double scaleFactor;
+	scaleFactor = (double)(slideValue) / (double)currentScale ;
+	scale(scaleFactor, scaleFactor);
+	currentScale = slideValue;
+}
+
 
 Graph::Graph()
 {
 	parentView = NULL;
+	currentPressedNode = NULL;
 	switchTimer = new QTimer;
-	switchTimer->setInterval(10);
+	switchTimer->setInterval(25);
 	switchTimes = 1;
 	hasLoaded = false;
 	connect(switchTimer, &QTimer::timeout, this, &Graph::switchAnimation);
-}
-
-PCAGraph::PCAGraph()
-{
-	g = vtkSmartPointer<vtkMutableUndirectedGraph>::New();
-	currentLayout = clusterLayout;
-	QPainter *p = new QPainter;
-	setSceneRect(0,0,1000,600);
-	p->setBrush(Qt::black);
-	drawBackground(p,sceneRect());
 }
 
 void Graph::findNodebyNum(Nodes *(&node1), Nodes *(&node2), int num1, int num2)
@@ -205,7 +269,6 @@ void Graph::switchLayoutStrategy(QString strategy)
 
 void Graph::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
-	qDebug() <<"wheel event!";
 	double scaleFactor = 1.15; //How fast we zoom
 
 	if (event->orientation()==Qt::Vertical){
@@ -220,39 +283,88 @@ void Graph::wheelEvent(QGraphicsSceneWheelEvent *event)
 	}
 }
 
-void View::itemMoved()
+void Graph::switchAnimation()
 {
-	/*if (timerId != 0)
-		timerId = startTimer(1000 / 25);*/
-	//qDebug() << "itemMoved";
+	double tempX, tempY;
+	if ((switchTimes < 15) && (switchTimes > 0))
+	{
+		foreach (QGraphicsItem * item, items())
+		{
+			if (item->type() == QGraphicsItem::UserType + 1)
+			{
+				tempX = ((Nodes *)item)->newPos.x() * switchTimes 
+					- ((Nodes *)item)->oldPos.x() * (switchTimes - 15);
+				tempX = tempX / 15.0;
+				tempY = ((Nodes *)item)->newPos.y() * switchTimes 
+					- ((Nodes *)item)->oldPos.y() * (switchTimes - 15);
+				tempY = tempY / 15.0;
+				item->setPos(tempX, tempY);		
+			}
+		}
+		switchTimes ++;
+	}
+	else if (switchTimes == 15)
+	{
+		foreach (QGraphicsItem * item, items())
+		{
+			if (item->type() == QGraphicsItem::UserType + 1)
+			{
+				item->setPos(((Nodes *)item)->newPos.x(),((Nodes *)item)->newPos.y());
+				switchTimes = 1;
+				switchTimer->stop();
+
+			}
+		}
+	}
+
+	else return;
 }
 
-void View::timerEvent(QTimerEvent * event)
+void Graph::setCurrentPressedNode(Nodes *node)
 {
-	Q_UNUSED(event);
+	currentPressedNode = node;
+}
 
-/*
-	qDebug() << "timer Event";
-
-	QList<Nodes *> nodes;
-	foreach (QGraphicsItem *item, scene()->items(Qt::DescendingOrder)) {
+void Graph::setColorStrategy(QString strategy)
+{
+	foreach (QGraphicsItem* item, items())
+	{
 		if (item->type() == QGraphicsItem::UserType + 1)
-			nodes << (Nodes *)item;
+			((Nodes *)item)->setColorStrategy(strategy);  //viewColor = Qt::white;
+		if (item->type() == QGraphicsItem::UserType + 2)
+			((Edges *)item)->setColorStrategy(strategy);
 	}
+}
 
-	foreach (Nodes *node, nodes)
-		node->calculateForces();
 
-	bool itemsMoved = false;
-	foreach (Nodes *node, nodes) {
-		if (node->advance())
-			itemsMoved = true;
-	}
+PCAGraph::PCAGraph()
+{
+	g = vtkSmartPointer<vtkMutableUndirectedGraph>::New();
+	currentLayout = clusterLayout;
+	QPainter *p = new QPainter;
+	setSceneRect(0,0,1000,600);
 
-	if (!itemsMoved) {
-		killTimer(timerId);
-		timerId = 0;
-	}*/
+	editWindow = new QDialog;
+	editWindow->setWindowFlags(Qt::WindowStaysOnTopHint);
+	editText = new QTextEdit();
+
+	button_yes = new QPushButton("Save");
+	button_cancle = new QPushButton("Cancel");
+	Hlayout = new QHBoxLayout;
+	button_yes->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	button_cancle->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+	Hlayout->addWidget(button_yes);
+	Hlayout->addWidget(button_cancle);
+	VLayout = new QVBoxLayout(editWindow);
+	VLayout->addWidget(editText);
+	VLayout->addLayout(Hlayout);
+
+	editWindow->resize(400,600);
+	editText->resize(400,550);
+
+	connect(button_yes, &QPushButton::clicked, this, &PCAGraph::editProperties);
+	connect(button_yes, &QPushButton::clicked, editWindow, &QDialog::close);
+	connect(button_cancle, &QPushButton::clicked, editWindow, &QDialog::close);
 }
 
 void PCAGraph::LoadData()
@@ -298,6 +410,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 					if (rx.cap(2) == "paper")
 					{
 						PaperNode *tempItem = new PaperNode(this, num);
+						tempItem->addInformation("Node type: Paper\n");
 						while(tempLine.indexOf(rxEmpty) >= 0)
 						{ 
 							tempLine = inputFile.readLine();
@@ -306,7 +419,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 							if (rx.cap(1) == "viewColor") 
 							{
 								rxColor.indexIn(rx.cap(2));
-								tempItem->setViewColor(QColor(rxColor.cap(4).toInt(&ok),
+								tempItem->inputViewColor(QColor(rxColor.cap(4).toInt(&ok),
 									rxColor.cap(1).toInt(&ok),
 									rxColor.cap(2).toInt(&ok),
 									rxColor.cap(3).toInt(&ok)
@@ -314,7 +427,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 							}
 							else if (rx.cap(1) == "viewLabel")
 							{
-								tempItem->setViewLabel(rx.cap(2));
+								tempItem->inputViewLabel(rx.cap(2));
 							}
 							else if (rx.cap(1) == "viewLayout")
 							{
@@ -334,6 +447,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 					else if (rx.cap(2) == "conference")
 					{
 						ConferenceNode *tempItem = new ConferenceNode(this, num);
+						tempItem->addInformation("Node type: Conference\n");
 						while(tempLine.indexOf(rxEmpty) >= 0)
 						{ 
 							tempLine = inputFile.readLine();
@@ -342,14 +456,14 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 							if (rx.cap(1) == "viewColor") 
 							{
 								rxColor.indexIn(rx.cap(2));
-								tempItem->setViewColor(QColor(rxColor.cap(4).toInt(&ok),
+								tempItem->inputViewColor(QColor(rxColor.cap(4).toInt(&ok),
 									rxColor.cap(1).toInt(&ok),
 									rxColor.cap(2).toInt(&ok),
 									rxColor.cap(3).toInt(&ok)));
 							}
 							else if (rx.cap(1) == "viewLabel")
 							{
-								tempItem->setViewLabel(rx.cap(2));
+								tempItem->inputViewLabel(rx.cap(2));
 							}
 							else if (rx.cap(1) == "viewLayout")
 							{
@@ -370,6 +484,7 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 					else if (rx.cap(2) == "author")
 					{
 						AuthorNode *tempItem = new AuthorNode(this, num);
+						tempItem->addInformation("Node type: Author\n");
 						while(tempLine.indexOf(rxEmpty) >= 0)
 						{ 
 							tempLine = inputFile.readLine();
@@ -377,14 +492,14 @@ void PCAGraph::LoadNodeDataOfPCA(QString inputFileName)
 							if (rx.cap(1) == "viewColor") 
 							{
 								rxColor.indexIn(rx.cap(2));
-								tempItem->setViewColor(QColor(rxColor.cap(4).toInt(&ok),
+								tempItem->inputViewColor(QColor(rxColor.cap(4).toInt(&ok),
 									rxColor.cap(1).toInt(&ok),
 									rxColor.cap(2).toInt(&ok),
 									rxColor.cap(3).toInt(&ok)));
 							}
 							else if (rx.cap(1) == "viewLabel")
 							{
-								tempItem->setViewLabel(rx.cap(2));
+								tempItem->inputViewLabel(rx.cap(2));
 							}
 							else if (rx.cap(1) == "viewLayout")
 							{
@@ -542,13 +657,31 @@ void PCAGraph::generateLayoutPosition()
 		{
 			node = (Nodes *)item;
 			outputGraph->GetPoint(((Nodes*)item)->idType, pt);
-			node->strategyPos[6].setX(pt[0] * 200 + 400);
-			node->strategyPos[6].setY(pt[1] * 200 + 250);
+			node->strategyPos[6].setX(pt[0] * 15 + 200);
+			node->strategyPos[6].setY(pt[1] * 15 + 200);
 		}
 		else break;
 	}
 	qDebug() <<"generate PCA!";
 }
+
+void PCAGraph::EditWindow()
+{
+	if (!currentPressedNode) return;
+
+	editText->setText(currentPressedNode->m_information);
+	editWindow->show();
+
+
+}
+
+void PCAGraph::editProperties()
+{
+	currentPressedNode->m_information = editText->toPlainText();
+	emit sendInformation(currentPressedNode->m_information);
+}
+
+
 
 TopicGraph::TopicGraph()
 {
@@ -556,10 +689,7 @@ TopicGraph::TopicGraph()
 	currentLayout = clusterLayout;
 	QPainter *p = new QPainter;
 	setSceneRect(0,0,1000,600);
-	p->setBrush(Qt::black);
-	drawBackground(p,sceneRect());
 }
-
 
 void TopicGraph::LoadData()
 {
@@ -567,6 +697,7 @@ void TopicGraph::LoadData()
 	{
 		LoadNodeDataOfTopic("TopicNodes.txt");
 		LoadEdgeDataOfTopic("TopicEdges.txt");
+		LoadDocumentContent("TopicDocumentContent.txt");
 		generateLayoutPosition();
 		hasLoaded = true;
 	}
@@ -592,9 +723,11 @@ void TopicGraph::LoadNodeDataOfTopic(QString inputFileName)
 		if (ok)
 		{
 			TopicNode *tempItem = new TopicNode(this, num);
+			tempItem->addInformation("Node Type: Topic Node\n");
 			do 
 			{
 				tempLine = inputFile.readLine();
+				tempItem->addInformation(tempLine);
 				pos = rx.indexIn(tempLine);
 				if (pos < 0) break;;
 				if (rx.cap(1) == "topicWords")
@@ -608,7 +741,6 @@ void TopicGraph::LoadNodeDataOfTopic(QString inputFileName)
 			}while(tempLine.indexOf(rxEmpty) >= 0);
 			tempItem->setPos(sceneRect().width()/2,sceneRect().height()/2);
 			this->addItem(tempItem);
-			//else this->items().append((QGraphicsItem *)tempItem);
 			tempItem->idType = tempItem->getScene()->g->AddVertex();
 		}
 	}
@@ -630,11 +762,33 @@ void TopicGraph::LoadEdgeDataOfTopic(QString inputFileName)
 		tempLine = inputFile.readLine();
 		tempList = tempLine.split(" ");
 		findNodebyNum(node1, node2, tempList[0].toInt(&ok), tempList[1].toInt(&ok));
-		newEdge = new UndirectedEdge(this, node1, node2, tempList[2].toInt(&ok));
+		newEdge = new UndirectedEdge(this, node1, node2, tempList[2].toDouble(&ok)* 4);
 		this->addItem(newEdge);
 		node1->UndirectedEdgeLIst.push_back(newEdge);
 		node2->UndirectedEdgeLIst.push_back(newEdge); //to debug
 		g->AddEdge(node1->idType, node2->idType);
+	}
+}
+
+void TopicGraph::LoadDocumentContent(QString inputFileName)
+{
+	QFile inputFile(inputFileName);
+	if (!inputFile.open(QIODevice::ReadOnly)) return;
+	QString tempLine;
+	int num = 0;
+	bool ok = false;
+	while (!inputFile.atEnd())
+	{
+		tempLine = inputFile.readLine();
+		num = tempLine.toInt(&ok);
+		if (ok)
+		{
+			DocId newid;
+			newid.idNum = num;
+			newid.title = inputFile.readLine();
+			newid.filePos = inputFile.pos();
+			m_docId.push_back(newid);
+		}
 	}
 }
 
@@ -761,37 +915,35 @@ void TopicGraph::generateLayoutPosition()
 	qDebug() << "generate!";
 }
 
-void Graph::switchAnimation()
+void TopicGraph::displayDocument(QString docId)
 {
-	double tempX, tempY;
-	if ((switchTimes < 15) && (switchTimes > 0))
+	bool ok;
+	bool flag = false;
+	int num = docId.toInt(&ok);
+	if(!ok) return;
+	QDialog *viewDialog = new QDialog;
+	QTextBrowser *docView = new QTextBrowser(viewDialog);
+	docView->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	std::vector<DocId>::iterator r = m_docId.begin();
+	for ( ; r != m_docId.end(); r++)
 	{
-		foreach (QGraphicsItem * item, items())
-		{
-			if (item->type() == QGraphicsItem::UserType + 1)
-			{
-				tempX = ((Nodes *)item)->newPos.x() * switchTimes 
-					- ((Nodes *)item)->oldPos.x() * (switchTimes - 15);
-				tempX = tempX / 15.0;
-				tempY = ((Nodes *)item)->newPos.y() * switchTimes 
-					- ((Nodes *)item)->oldPos.y() * (switchTimes - 15);
-				tempY = tempY / 15.0;
-				item->setPos(tempX, tempY);		
-			}
-		}
-		switchTimes ++;
+		if (r->idNum == num) { flag = true; break;}
 	}
-	else if (switchTimes == 15)
+	if (flag == false) 
 	{
-		foreach (QGraphicsItem * item, items())
-		{
-			if (item->type() == QGraphicsItem::UserType + 1)
-			{
-				item->setPos(((Nodes *)item)->newPos.x(),((Nodes *)item)->newPos.y());
-				switchTimes = 1;
-				switchTimer->stop();
-			}
-		}
+		return;
 	}
-	else return;
+	QFile docFile("TopicDocumentContent.txt");
+	QString passage;
+	if (docFile.open(QIODevice::ReadOnly))
+	{
+		docFile.seek(r->filePos);
+		passage = docFile.readLine();
+	}
+	docView->setText(r->title + "\n" + passage);
+	docView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+	docView->resize(400, 600);
+	viewDialog->resize(400, 600);
+	viewDialog->show();
 }
+

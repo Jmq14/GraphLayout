@@ -15,56 +15,61 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QWheelEvent>
 #include <QTimerEvent>
+#include <QDialog>
+#include <QTextEdit>
+#include <QPushButton>
+#include <QPainterPathStroker>
 
 Nodes::Nodes()
 {
 	setFlag(ItemIsMovable);
 	setFlag(ItemSendsGeometryChanges);
 	setCacheMode(DeviceCoordinateCache);
+	setAcceptHoverEvents(true);
+	hoverInfo = NULL;
+	viewColor = Qt::white;
+	m_radius = 3;
 }
 
-PaperNode::PaperNode(PCAGraph *parent, int num)
+void Nodes::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-	m_scene = parent;
-	m_num = num;
+	setCursor(Qt::PointingHandCursor);
+	QString shortInfo;
+	shortInfo = "No." + QString::number(m_num) + " type:" + m_type 
+		+ "\n" + inputLabel.text()
+		+ "\nCurrentPosition: (" + QString::number(pos().x()) + ", " + QString::number(pos().y()) + ")";
+	hoverInfo = new QLabel(shortInfo);
+	hoverInfo->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
+	hoverInfo->move(event->screenPos());
+	hoverInfo->show();
 }
 
-ConferenceNode::ConferenceNode(PCAGraph *parent, int num)
+void Nodes::hoverLeaveEvent(QGraphicsSceneHoverEvent *event) 
 {
-	m_scene = parent;
-	m_num = num;
-}
-
-AuthorNode::AuthorNode(PCAGraph *parent, int num)
-{
-	m_scene = parent;
-	m_num = num;
-}
-
-TopicNode::TopicNode(TopicGraph *parent, int num)
-{
-	m_scene = parent;
-	m_num = num;
+	if (hoverInfo)
+	{
+		//setCursor(Qt::ArrowCursor);
+		hoverInfo->hide();
+		delete hoverInfo;
+		hoverInfo = NULL;
+	}
+	return;
 }
 
 QRectF Nodes::boundingRect() const
 {
 	qreal adjust = 3;
-	return QRectF( -5 - adjust, -5 - adjust, 10 + adjust, 10 + adjust);
+	return QRectF( -10 - adjust, -10 - adjust, 20 + adjust, 20 + adjust);
 }
 
 void Nodes::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget )
 {
-	//qDebug() <<"painted nodes!";
-	/*if ((pos().rx() < 0) || (pos().rx() > 1000 / *scene()->sceneRect().x()* /) 
-		||(pos().ry() < 0) || (pos().ry() > 1000 / *scene()->sceneRect().y()* /) )
-		return;*/
 	painter->setPen(Qt::NoPen);
-	painter->setBrush(Qt::white);
-	painter->drawEllipse( - 3,  - 3,6,6);
-	painter->setPen(Qt::white);
+	painter->setBrush(viewColor);
+	painter->drawEllipse( -m_radius,  -m_radius, m_radius*2, m_radius*2);
+	painter->setPen(viewColor);
 	painter->setBrush(Qt::NoBrush);
-	painter->drawEllipse(- 4,- 4,8,8);
+	painter->drawEllipse(- m_radius-1, -m_radius-1, m_radius*2+2 ,m_radius*2+2);
 }
 
 void Nodes::addInformation(QString info)
@@ -72,14 +77,14 @@ void Nodes::addInformation(QString info)
 	m_information = m_information + "\n" + info;
 }
 
-void Nodes::setViewColor(QColor c)
+void Nodes::inputViewColor(QColor c)
 {
-	viewColor = c;
+	inputColor = c;
 }
 
-void Nodes::setViewLabel(QString l)
+void Nodes::inputViewLabel(QString l)
 {
-	viewLabel.setText(l);
+	inputLabel.setText(l);
 }
 
 //坐标进行了改动
@@ -90,16 +95,17 @@ void Nodes::inputDefaultPosition(double x, double y, double z)
 	m_z = z;
 }
 
-//半径为5的圆
+//半径为4的圆
 QPainterPath Nodes::shape() const
 {
 	QPainterPath path;
-	path.addEllipse(-5, -5, 10, 10);
+	path.addEllipse(-6, -6, 12, 12);
 	return path;
 }
 
 void Nodes::mousePressEvent(QGraphicsSceneMouseEvent *ev) 
 {
+	emit sendCurrentPressesNode(this);
 	emit sendInfomation(m_information);
 	update();
 	QGraphicsItem::mousePressEvent(ev);
@@ -171,89 +177,155 @@ void Nodes::calculateForces()
 	newPos = pos() + QPointF(xvel, yvel);
 	newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right() - 10));
 	newPos.setY(qMin(qMax(newPos.y(), sceneRect.top() + 10), sceneRect.bottom() - 10));
-	qDebug() << "newPos" << newPos.x() << newPos.y();
+	//qDebug() << "newPos" << newPos.x() << newPos.y();
 }
 
-QVariant Nodes::itemChange(GraphicsItemChange change, const QVariant &value)
-{
-/*
-	switch (change) {
-	case ItemPositionHasChanged:
-		foreach (DirectedEdge *edge, DirectedEdgeList)
-			edge->adjust();
-		foreach (UndirectedEdge *edge, UndirectedEdgeLIst)
-			edge->adjust();
-		break;
-	default:
-		break;
-	};*/
 
-	return QGraphicsItem::itemChange(change, value);
+
+
+PaperNode::PaperNode(PCAGraph *parent, int num)
+{
+	m_scene = parent;
+	m_num = num;
+	m_type = "Paper Node";
 }
 
-QVariant PaperNode::itemChange(GraphicsItemChange change, const QVariant &value)
+void PaperNode::editInformation()
 {
-/*
-	switch (change) {
-	case ItemPositionHasChanged:
-		foreach (DirectedEdge *edge, DirectedEdgeList)
-			edge->adjust();
-		//getScene()->getParentView()->itemMoved();
-		break;
-	default:
-		break;
-	};
-*/
+	QDialog *editWindow = new QDialog;
+	QTextEdit *editText = new QTextEdit(editWindow);
+	QPushButton *button_yes = new QPushButton(tr("Yes"),editWindow);
+	QPushButton *button_cancle = new QPushButton(tr("Cancel"), editWindow);
 
-	return QGraphicsItem::itemChange(change, value);
 }
 
-QVariant ConferenceNode::itemChange(GraphicsItemChange change, const QVariant &value)
+void PaperNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget )
 {
-	switch (change) {
-	case ItemPositionHasChanged:
-		foreach (DirectedEdge *edge, DirectedEdgeList)
-			edge->adjust();
-		//getScene()->getParentView()->itemMoved();
-		break;
-	default:
-		break;
+	if (colorStrategy == "Dark") {
+		viewColor = Qt::white;
+		m_radius = 2;
 	}
-
-	return QGraphicsItem::itemChange(change, value);
+	else if (colorStrategy == "Light") {
+		viewColor = QColor(124,198,153);
+		m_radius = 4;
+	}
+	painter->setPen(Qt::NoPen);
+	painter->setBrush(viewColor);
+	painter->drawEllipse( -m_radius,  -m_radius, m_radius*2, m_radius*2);
+	painter->setPen(viewColor);
+	painter->setBrush(Qt::NoBrush);
+	painter->drawEllipse(- m_radius-1, -m_radius-1, m_radius*2+2 ,m_radius*2+2);
 }
 
-QVariant AuthorNode::itemChange(GraphicsItemChange change, const QVariant &value)
+ConferenceNode::ConferenceNode(PCAGraph *parent, int num)
 {
-	switch (change) {
-	case ItemPositionHasChanged:
-		foreach (DirectedEdge *edge, DirectedEdgeList)
-			edge->adjust();
-		//getScene()->getParentView()->itemMoved();
-		break;
-	default:
-		break;
-	};
-
-	return QGraphicsItem::itemChange(change, value);
+	m_scene = parent;
+	m_num = num;
+	m_type = "Conference Node";
 }
 
-QVariant TopicNode::itemChange(GraphicsItemChange change, const QVariant &value)
+void ConferenceNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget )
 {
-	switch (change) {
-	case ItemPositionHasChanged:
-		foreach (UndirectedEdge *edge, UndirectedEdgeLIst)
-			edge->adjust();
-		//getScene()->getParentView()->itemMoved();
-		break;
-	default:
-		break;
-	};
-
-	return QGraphicsItem::itemChange(change, value);
+	if (colorStrategy == "Dark") {
+		viewColor = Qt::white;
+		m_radius = 2.5;
+	}
+	else if (colorStrategy == "Light") {
+		viewColor = QColor(242,122,90);
+		m_radius = 5;
+	}
+	painter->setPen(Qt::NoPen);
+	painter->setBrush(viewColor);
+	painter->drawEllipse( -m_radius,  -m_radius, m_radius*2, m_radius*2);
+	painter->setPen(viewColor);
+	painter->setBrush(Qt::NoBrush);
+	painter->drawEllipse(- m_radius-1, -m_radius-1, m_radius*2+2 ,m_radius*2+2);
 }
 
-DirectedEdge::DirectedEdge(QGraphicsScene *parent, Nodes* source /* = NULL */, Nodes *target /* = NULL */, int weight /* = 1 */)
+AuthorNode::AuthorNode(PCAGraph *parent, int num)
+{
+	m_scene = parent;
+	m_num = num;
+	m_type = "Author Node";
+}
+
+void AuthorNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget )
+{
+	if (colorStrategy == "Dark") {
+		viewColor = Qt::white;
+		m_radius = 3;
+	}
+	else if (colorStrategy == "Light") {
+		viewColor = QColor(239,73,38);
+		m_radius = 8;
+	}
+	painter->setPen(Qt::NoPen);
+	painter->setBrush(viewColor);
+	painter->drawEllipse( -m_radius,  -m_radius, m_radius*2, m_radius*2);
+	painter->setPen(viewColor);
+	painter->setBrush(Qt::NoBrush);
+	painter->drawEllipse(- m_radius-1, -m_radius-1, m_radius*2+2 ,m_radius*2+2);
+}
+
+TopicNode::TopicNode(TopicGraph *parent, int num)
+{
+	m_scene = parent;
+	m_num = num;
+	m_type = "Topic Node";
+}
+
+void TopicNode::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+{
+	emit setDocComboBox(this);
+	emit sendInfomation(m_information);
+	setFocus(Qt::MouseFocusReason);
+	update();
+	QGraphicsItem::mousePressEvent(ev);
+}
+
+void TopicNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget )
+{
+	if (colorStrategy == "Dark") {
+		viewColor = Qt::white;
+		m_radius = 4;
+	}
+	else if (colorStrategy == "Light") {
+		viewColor = QColor(124,198,153);
+		m_radius = 5;
+	}
+	painter->setPen(Qt::NoPen);
+	painter->setBrush(viewColor);
+	painter->drawEllipse( -m_radius,  -m_radius, m_radius*2, m_radius*2);
+	painter->setPen(viewColor);
+	painter->setBrush(Qt::NoBrush);
+	painter->drawEllipse(- m_radius-1, -m_radius-1, m_radius*2+2 ,m_radius*2+2);
+}
+
+
+Edges::Edges()
+{
+	viewColor = Qt::white;
+}
+
+QRectF Edges::boundingRect() const
+{
+	return QRectF(-800,-800, 1600, 1600);
+}
+
+
+QPainterPath DirectedEdge::shape() const
+{
+	QPainterPath path;
+	if ((!sourceNode) || (!targetNode)) return path;
+	else 
+	{
+		QPainterPath Line(sourceNode->pos());
+		Line.lineTo(targetNode->pos());
+		return Line;
+	}
+}
+
+DirectedEdge::DirectedEdge(QGraphicsScene *parent, Nodes* source /* = NULL */, Nodes *target /* = NULL */, double weight /* = 1 */)
 {
 	m_scene = parent;
 	sourceNode = source;
@@ -262,19 +334,21 @@ DirectedEdge::DirectedEdge(QGraphicsScene *parent, Nodes* source /* = NULL */, N
 	setAcceptedMouseButtons(0);
 }
 
-//边长为1600的正方形
-QRectF Edges::boundingRect() const
-{
-	return QRectF(-800,-800, 1600, 1600);
-}
-
 void DirectedEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget /* = 0 */ )
 {
-	//qDebug() << "painted edge!";
-	painter->setPen(Qt::white);
 	if ((getSourceNode() == NULL) || (getTargetNode() == NULL)) return;
-	painter->drawLine(getSourceNode()->pos().rx(),getSourceNode()->pos().ry(),
-		getTargetNode()->pos().rx(), getTargetNode()->pos().ry());
+	if (colorStrategy == "Dark") {
+		viewColor = Qt::white;
+	}
+	else if (colorStrategy == "Light") {
+		viewColor = QColor(200,200,200);
+	}
+
+	QPen pen;
+	pen.setColor(viewColor);
+	pen.setWidth(0.2);
+	painter->setPen(pen);
+	painter->drawLine(getSourceNode()->pos(), getTargetNode()->pos());
 }
 
 void DirectedEdge::adjust()
@@ -301,7 +375,8 @@ void DirectedEdge::adjust()
 	update();
 }
 
-UndirectedEdge::UndirectedEdge(QGraphicsScene *parent, Nodes* Node1 /* = NULL */, Nodes *Node2 /* = NULL */, int weight /* = 1 */)
+
+UndirectedEdge::UndirectedEdge(QGraphicsScene *parent, Nodes* Node1 /* = NULL */, Nodes *Node2 /* = NULL */, double weight /* = 1 */)
 {
 	m_scene = parent;
 	m_node1 = Node1;
@@ -320,13 +395,31 @@ void UndirectedEdge::adjust()
 
 void UndirectedEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget /* = 0 */ )
 {
-	//qDebug() << "painted edge!";
-	painter->setPen(Qt::white);
 	if ((getNode1() == NULL) || (getNode2() == NULL)) return;
-	painter->drawLine(getNode1()->pos().rx(),getNode1()->pos().ry(),
-		getNode2()->pos().rx(), getNode2()->pos().ry());
 
+	if ((getNode1() == NULL) || (getNode2() == NULL)) return;
+	if (colorStrategy == "Dark") {
+		viewColor = Qt::white;
+	}
+	else if (colorStrategy == "Light") {
+		viewColor = QColor(200,200,200);
+	}
+	QPen pen;
+	pen.setColor(viewColor);
+	pen.setWidth(m_weight);
+	painter->setPen(pen);
+	painter->drawLine(getNode1()->pos(), getNode2()->pos());
 }
 
-
+QPainterPath UndirectedEdge::shape() const
+{
+	QPainterPath path;
+	if ((!m_node1) || (!m_node2)) return path;
+	else 
+	{
+		QPainterPath Line(m_node1->pos());
+		Line.lineTo(m_node2->pos());
+		return Line;
+	}
+}
 

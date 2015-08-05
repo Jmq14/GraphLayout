@@ -4,6 +4,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_graphicsvisualization.h"
 #include "SceneClass.h"
+#include "ItemClass.h"
 
 class GraphicsVisualization : public QMainWindow
 {
@@ -18,11 +19,14 @@ private:
 	View *v;
 	PCAGraph *s;
 	TopicGraph *t;
+	
 
 public slots:
 	void setPCAScene();
 	void setTopicScene();
-
+	void showDoc();
+	void setComboBox(TopicNode* node);
+	void setGraphDragMode(int mode);
 };
 
 #endif // GRAPHICSVISUALIZATION_H

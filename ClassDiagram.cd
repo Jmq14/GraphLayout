@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Nodes" Collapsed="true">
+    <Position X="8.5" Y="1" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Nodes::__unnamed_enum_0266_1" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>ItemClass.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>ABhCAAABAAFAAAAAAARAhABAUAARAAAAAAgCBAIQBQA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PaperNode" Collapsed="true">
+    <Position X="7.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACEQAAQAEIAAAQAACAAAAAAEAAIAAQAAABCAAQAQAA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ConferenceNode" Collapsed="true">
+    <Position X="9.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAABAAAAgAAAAAAEAAIAAQAAAACAAAAAAg=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AuthorNode" Collapsed="true">
+    <Position X="12" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACCAAAAAAAAAAQAAAAAAAAAAEAAIAAQAAAACAAAAAAA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TopicNode" Collapsed="true">
+    <Position X="5.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACBAAAAAAAAACAAAAAAAEAAAAEIIAAAAAACBIAAAAA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Edges" Collapsed="true">
+    <Position X="8.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABCAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAgAAAAAAAA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DirectedEdge" Collapsed="true">
+    <Position X="7.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAACBAAACAAAAAAAIAAAAACiAAAAAAAA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UndirectedEdge" Collapsed="true">
+    <Position X="10" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAgAAAAAAAAAAAgBAAAAAAAAAIAAAAAAQBgAAAAAAAA=</HashCode>
+      <FileName>ItemClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Graph">
+    <Position X="2.5" Y="0.75" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Graph::LayoutStrategy" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>SceneClass.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAoAACEEAAgQAAAAAAAAAAEAEAABAAAQAAAAAAAAAAA=</HashCode>
+      <FileName>SceneClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PCAGraph">
+    <Position X="1.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQAAAABEAAAAAAAAAAAAAIAAAAAAAAABA=</HashCode>
+      <FileName>SceneClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TopicGraph">
+    <Position X="3.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAQAAAAAEAAAAAAAAAAAAAIAAAAAEAAAAA=</HashCode>
+      <FileName>SceneClass.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

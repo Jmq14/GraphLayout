@@ -7,6 +7,13 @@
 #include <QGraphicsView>
 #include <QString>
 #include <QTimer>
+#include <QDialog>
+#include <QTextEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QColor>
+#include <vector>
 
 class Nodes;
 
@@ -14,13 +21,17 @@ class View :public QGraphicsView
 {
 public:
 	View(QWidget *parent = 0);
-
+	QString colorStrategy;
 public:
 	int timerId;
+	int currentScale;
 
 public:
 	void timerEvent(QTimerEvent *);
 	void itemMoved();
+	void drawBackground(QPainter *painter, const QRectF &rect);
+	void setColorStrategy(QString);
+	void setScale(int slideValue);
 };
 
 class Graph:public QGraphicsScene
@@ -29,13 +40,14 @@ class Graph:public QGraphicsScene
 
 public:
 	Graph();
-	virtual void LoadData() = 0;
 	void findNodebyNum(Nodes *(&node1), Nodes *(&node2), int num1, int num2);
 	void setParentView(View * parent) {parentView = parent;};
 	View* getParentView(){return parentView;}
 	void wheelEvent(QGraphicsSceneWheelEvent *event);
 	void switchAnimation();
-	virtual void switchLayoutStrategy(QString strategy);
+	void switchLayoutStrategy(QString strategy);
+	Nodes *currentPressedNode;
+	QString colorStrategy;
 
 public:
 	QTimer* switchTimer;
@@ -49,16 +61,26 @@ protected:
 public:
 	enum LayoutStrategy {defaultLayout, circleLayout, clusterLayout, fast2DLayout, simple2DLayout, forceDirected2D, spanTree };
 	LayoutStrategy currentLayout;
+	void setCurrentPressedNode(Nodes *node);
+	void setColorStrategy(QString);
 };
 
 class PCAGraph :public Graph
 {
 	Q_OBJECT
 
+private:
+	QDialog *editWindow;
+	QTextEdit *editText;
+	QPushButton *button_yes;
+	QPushButton *button_cancle;
+	QHBoxLayout *Hlayout;
+	QVBoxLayout *VLayout;
 public:
 	PCAGraph();
 signals:
 	void loadedPCA();
+	void sendInformation(QString);
 public:
 	void LoadData();
 	void LoadNodeDataOfPCA(QString inputFileName);
@@ -67,7 +89,8 @@ public:
 	vtkSmartPointer<vtkMutableUndirectedGraph> g;
 	void generateLayoutPosition();
 
-
+	void EditWindow();
+	void editProperties();
 };
 
 class TopicGraph :public Graph
@@ -78,12 +101,31 @@ public:
 	TopicGraph();
 signals:
 	void loadedTopic();
+	
+public:
+	class DocId 
+	{
+	public:
+		int idNum;
+		int filePos;
+		QString title;
+	};
+
+private:
+	std::vector<DocId> m_docId;
+
 public:
 	void LoadData();
 	void LoadNodeDataOfTopic(QString inputFileName);
 	void LoadEdgeDataOfTopic(QString inputFileName);
+	void LoadDocumentContent(QString inputFileName);
 	vtkSmartPointer<vtkMutableUndirectedGraph> g;
 	void generateLayoutPosition();
+
+public slots:
+	void displayDocument(QString docId);
+
+	
 };
 
 #endif
